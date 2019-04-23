@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/gorilla/mux"
 	"github.com/pkkcode/restgo/model"
 	// . "github.com/pkkcode/restgo/model"
 )
@@ -19,10 +18,13 @@ import (
 var books []model.Book
 var b *mongo.Collection
 
+// var b11 bson.TypeObjectID
+
 func init() {
 
 	b = db.Start("books")
 	fmt.Println(b)
+	//	fmt.Println(b11)
 
 }
 
@@ -55,13 +57,13 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 //GetBook is
 func GetBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	params := mux.Vars(r)
-	for _, book := range books {
-		if book.ID == params["id"] {
-			json.NewEncoder(w).Encode(book)
-			return
-		}
-	}
+	//params := mux.Vars(r)
+	// for _, book := range books {
+	// 	if book.ID == params["id"] {
+	// 		json.NewEncoder(w).Encode(book)
+	// 		return
+	// 	}
+	// }
 	json.NewEncoder(w).Encode(model.Book{})
 }
 
@@ -77,39 +79,39 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	//book.ID = strconv.Itoa(rand.Intn(1000000))
 	// }
 	// fmt.Println(&book)
-	books = append(books, book)
+	//books = append(books, book)
 	res, err := b.InsertOne(context.Background(), book)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(res)
-	json.NewEncoder(w).Encode(books)
+	json.NewEncoder(w).Encode(res)
 }
 
 //UpdateBook is
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	params := mux.Vars(r)
-	for index, item := range books {
-		if item.ID == params["id"] {
-			books = append(books[:index], books[index+1:]...)
-			CreateBook(w, r)
-			break
-		}
-	}
+	//	params := mux.Vars(r)
+	// for index, item := range books {
+	// 	if item.ID == params["id"] {
+	// 		books = append(books[:index], books[index+1:]...)
+	// 		CreateBook(w, r)
+	// 		break
+	// 	}
+	// }
 	//	json.NewEncoder(w).Encode(books)
 }
 
 //DeleteBook is
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	params := mux.Vars(r)
-	for index, item := range books {
-		if item.ID == params["id"] {
-			books = append(books[:index], books[index+1:]...)
-			break
-		}
-	}
+	//params := mux.Vars(r)
+	// for index, item := range books {
+	// 	if item.ID == params["id"] {
+	// 		books = append(books[:index], books[index+1:]...)
+	// 		break
+	// 	}
+	// }
 	json.NewEncoder(w).Encode(books)
 
 }

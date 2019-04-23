@@ -1,13 +1,15 @@
 package book
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
+	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/pkkcode/restgo/db"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/gorilla/mux"
 	"github.com/pkkcode/restgo/model"
@@ -15,16 +17,39 @@ import (
 )
 
 var books []model.Book
+var b *mongo.Collection
 
 func init() {
-	aa := db.Start()
-	fmt.Println(aa)
+
+	b = db.Start("books")
+	fmt.Println(b)
+
 }
 
 //GetBooks is
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	json.NewEncoder(w).Encode(books)
+	cur, err := b.Find(context.Background(), bson.D{})
+	var results []model.Book
+	for cur.Next(context.Background()) {
+		// To decode into a struct, use cursor.Decode()
+		result := model.Book{}
+		err := cur.Decode(&result)
+		results = append(results, result)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// do something with result...
+
+		// To get the raw bson bytes use cursor.Current
+		//raw := cur.Current
+		// do something with raw...
+	}
+	defer cur.Close(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	json.NewEncoder(w).Encode(results)
 }
 
 //GetBook is
@@ -42,16 +67,22 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 
 //CreateBook is
 func CreateBook(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-type", "application/json")
 
 	var book model.Book
 	_ = json.NewDecoder(r.Body).Decode(&book)
 
 	// for _, b := range book {
-	book.ID = strconv.Itoa(rand.Intn(1000000))
+	//book.ID = strconv.Itoa(rand.Intn(1000000))
 	// }
-	fmt.Println(&book)
+	// fmt.Println(&book)
 	books = append(books, book)
+	res, err := b.InsertOne(context.Background(), book)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(res)
 	json.NewEncoder(w).Encode(books)
 }
 

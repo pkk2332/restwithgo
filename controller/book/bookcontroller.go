@@ -7,6 +7,9 @@ import (
 	"log"
 	"net/http"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/gorilla/mux"
 	"github.com/pkkcode/restgo/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -57,29 +60,30 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 //GetBook is
 func GetBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	//params := mux.Vars(r)
-	// for _, book := range books {
-	// 	if book.ID == params["id"] {
-	// 		json.NewEncoder(w).Encode(book)
-	// 		return
-	// 	}
-	// }
-	json.NewEncoder(w).Encode(model.Book{})
+	params := mux.Vars(r)
+	rid, err := primitive.ObjectIDFromHex(params["id"])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(rid)
+	cur := b.FindOne(context.Background(), bson.M{"_id": rid})
+
+	var b3 model.Book
+	err1 := cur.Decode(&b3)
+	if err1 != nil {
+		log.Fatal(err1)
+	}
+	//	mongo.SingleResult
+	fmt.Println(b3)
+	json.NewEncoder(w).Encode(b3)
 }
 
 //CreateBook is
 func CreateBook(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Content-type", "application/json")
-
 	var book model.Book
 	_ = json.NewDecoder(r.Body).Decode(&book)
-
-	// for _, b := range book {
-	//book.ID = strconv.Itoa(rand.Intn(1000000))
-	// }
-	// fmt.Println(&book)
-	//books = append(books, book)
+	fmt.Println(book)
 	res, err := b.InsertOne(context.Background(), book)
 	if err != nil {
 		log.Fatal(err)
@@ -91,27 +95,41 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 //UpdateBook is
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	//	params := mux.Vars(r)
-	// for index, item := range books {
-	// 	if item.ID == params["id"] {
-	// 		books = append(books[:index], books[index+1:]...)
-	// 		CreateBook(w, r)
-	// 		break
-	// 	}
-	// }
-	//	json.NewEncoder(w).Encode(books)
+	var book model.Book
+	_ = json.NewDecoder(r.Body).Decode(&book)
+	fmt.Println(book)
+	update := bson.D{
+		{"$set", book},
+	}
+	// fmt.Println(book)
+	res, err := b.UpdateOne(context.Background(), bson.D{{"_id", book.ID}}, update)
+	fmt.Println(res)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//json.NewEncoder(w).Encode(res)
 }
 
 //DeleteBook is
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
-	//params := mux.Vars(r)
+	params := mux.Vars(r)
+	// to change the string id into binary json id in mongodb
+	rid, err := primitive.ObjectIDFromHex(params["id"])
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(params["id"])
+	res, err := b.DeleteOne(context.Background(), bson.M{"_id": rid})
+	if err != nil {
+		log.Fatal(err)
+	}
 	// for index, item := range books {
 	// 	if item.ID == params["id"] {
 	// 		books = append(books[:index], books[index+1:]...)
 	// 		break
 	// 	}
 	// }
-	json.NewEncoder(w).Encode(books)
-
+	fmt.Println(res.DeletedCount)
+	json.NewEncoder(w).Encode(true)
 }

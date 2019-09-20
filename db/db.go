@@ -17,7 +17,7 @@ var db *mongo.Database
 
 func init() {
 
-	coptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	coptions := options.Client().ApplyURI("mongodb://mongo2")
 	client, err := mongo.NewClient(coptions)
 	if err != nil {
 		log.Fatal(err)

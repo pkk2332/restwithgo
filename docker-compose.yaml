@@ -1,0 +1,21 @@
+version: '3'
+services:
+  go-app:
+    image: 'restwithgo'
+    container_name: go-dev
+    restart: always
+    build: ./
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/go/src/restwithgo
+      - /go/src/restwithgo/vendor
+    depends_on:
+      - mongo2
+    links:
+      - mongo2
+  mongo2:
+    container_name: mongo2
+    image: 'mongo'
+    ports:
+      - "27017"

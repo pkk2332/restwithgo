@@ -9,12 +9,14 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
+	"restwithgo/db"
+
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
-	"github.com/pkkcode/restgo/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/pkkcode/restgo/model"
+	"restwithgo/model"
 	// . "github.com/pkkcode/restgo/model"
 )
 
@@ -28,6 +30,28 @@ func init() {
 	b = db.Start("books")
 	fmt.Println(b)
 	//	fmt.Println(b11)
+
+}
+
+//GinGetBooks is
+func GinGetBooks(c *gin.Context) {
+
+	cur, err := b.Find(context.Background(), bson.D{})
+	var results []model.Book
+	for cur.Next(context.Background()) {
+		result := model.Book{}
+		err := cur.Decode(&result)
+		results = append(results, result)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	defer cur.Close(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	c.JSON(200, gin.H{
+		"results": results})
 
 }
 
